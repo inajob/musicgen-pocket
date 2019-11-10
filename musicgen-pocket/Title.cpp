@@ -65,7 +65,11 @@ void Title::draw(){
   arduboy.print(context.speed);
 
   for(byte j = 0; j < 16; j++){
-    arduboy.fillRect(j*8, 64 - context.pattern[context.track[0][context.trackPos]][j]*2, 8, 2);
+    if(context.modifier[context.track[0][context.trackPos]][j] != 0){
+      arduboy.drawRect(j*8, 64 - context.pattern[context.track[0][context.trackPos]][j]*2 - 1, 8, 4);
+    }else{
+      arduboy.fillRect(j*8, 64 - context.pattern[context.track[0][context.trackPos]][j]*2, 8, 2);
+    }
     arduboy.fillRect(j*8, 64 - context.pattern[context.track[1][context.trackPos]][j]*2, 8, 2);
   }
   arduboy.fillRect(context.seek*8, 0, 1, 64);

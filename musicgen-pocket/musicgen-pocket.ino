@@ -24,12 +24,16 @@ NOTE_C7, NOTE_D7, NOTE_E7, NOTE_F7,NOTE_G7,NOTE_A7,NOTE_B7,
 NOTE_C8, NOTE_D8, NOTE_E8, NOTE_F8,NOTE_G8,NOTE_A8,NOTE_B8,
 };
 
+#define R_RESUME 0
+#define R_TONE 1
+#define R_BEND 2
+
 
 void setup() {
   soundSetup();
 
   // put your setup code here, to run once:
-  arduboy.boot();
+  arduboy.begin();
   arduboy.setFrameRate(60); // super fast
 
   // setup standard tones
@@ -43,6 +47,14 @@ void setup() {
       context.track[i][j] = 255;
     }
   }
+  // setup
+  for(byte i = 0; i < 16; i ++){
+    for(byte j = 0; j < 16; j ++){
+      context.pattern[i][j] = 0;
+      context.modifier[i][j] = 0;
+    }
+  }
+
 
   arduboy.initRandomSeed();
 
@@ -135,23 +147,35 @@ void genRythm(byte *r,byte pos, byte len){
 
 void genMusic(){
   byte rythm[16];
-  bool rrythm[16];
+  byte rrythm[16];
   // melo rythm
   id = 0;
   genRythm(rythm, 0, 16);
 
   byte baseMode = random(4);
 
-  byte preId = 128;
-  for(int i = 0; i < 16; i ++){
-      if(preId != rythm[i]){
-        rrythm[i] = random(10) > 4; // resume
-      }else{
-        rrythm[i] = rrythm[i - 1];
-      }
-      preId = rythm[i];
+  byte preRythm = 128;
+  bool toneExists = false;
+  while(toneExists == false){  // avoid no tone sequence
+    for(int i = 0; i < 16; i ++){
+        if(preRythm != rythm[i]){
+          int r = random(100);
+          if(r < 40){
+            rrythm[i] = R_TONE;
+            toneExists = true;
+          }else if(r < 80 && (i > 0 && rrythm[i - 1] == R_TONE)){ // bend 40%
+            rrythm[i] = R_BEND;
+          }else{
+            rrythm[i] = R_RESUME;
+          }
+        }else{
+          rrythm[i] = rrythm[i - 1];
+        }
+        preRythm = rythm[i];
+    }
   }
 
+  // create similer melody in this loop
   for(int j = 0; j < 8; j ++){
     context.track[0][j] = j;
 
@@ -163,13 +187,13 @@ void genMusic(){
     unsigned int preTone  = 0;
     for(int i = 0; i < 16; i ++){
       if(preId != rythm[i]){
-        if(rrythm[i] == false){
+        if(rrythm[i] == R_RESUME){
           context.pattern[j][i] = 0; // no tone
-        }else{
+        }else{ // R_TONE (R_BEND is not here)
           if(random(10) < 2){
-          context.pattern[j][i] = 14 + c + random(7); // random
+            context.pattern[j][i] = 14 + c + random(7); // random
           }else{
-          context.pattern[j][i] = 14 + c + random(3) * 2; // ex. C, E, G
+            context.pattern[j][i] = 14 + c + random(3) * 2; // ex. C, E, G
           }
           if(random(2) == 0){
             context.pattern[j][i] -= 7;
@@ -179,6 +203,12 @@ void genMusic(){
       }else{
         context.pattern[j][i] = preTone;
       }
+      if(rrythm[i] == R_BEND){
+        context.modifier[j][i] = R_BEND;
+      }else{
+        context.modifier[j][i] = 0;
+      }
+
       preId = rythm[i];
     }
 

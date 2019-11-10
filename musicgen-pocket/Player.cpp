@@ -18,6 +18,7 @@ void Player::run(){
       nf2 = (nf2 >> 1);
     }
   }
+  unsigned int now;
   unsigned int next;
   unsigned int nnext;
   if(arduboy.everyXFrames(1)){
@@ -39,6 +40,20 @@ void Player::run(){
 
 
   // sound generate
+  if(context.track[0][context.trackPos] != 255){
+    if(context.modifier[context.track[0][context.trackPos]][context.seek] == 2){//bend
+      now = d[0];
+      if(context.seek == 15){
+        next = context.tones[context.pattern[context.track[0][(context.trackPos + 1)%2]][0]];
+      }else{
+        next = context.tones[context.pattern[context.track[0][context.trackPos]][context.seek]];
+      }
+      if(d[0] != 0 && next != 0){
+        d[0] = (next + d[0])/2;
+      }
+    }
+  }
+
   if(arduboy.everyXFrames(context.speed)){
     if(context.track[0][context.trackPos] != 255){
       next = context.tones[context.pattern[context.track[0][context.trackPos]][context.seek]];

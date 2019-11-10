@@ -4,6 +4,7 @@
 struct Context{
   byte patternNo;
   byte pattern[16][16];
+  byte modifier[16][16];
   byte trackNo;
   byte track[8][8];
   byte speed;
